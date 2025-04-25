@@ -1,8 +1,8 @@
 import os
 
 import numpy as np
-# from pyDOE import lhs
-from scipy.io import loadmat
+from pyDOE import lhs
+# from scipy.io import loadmat
 
 '''
 加载目标路径和加载输入输出数据
@@ -32,20 +32,40 @@ def load_data(path):
 
     # All data
     X_star = npzfile['X']
-    Y_star = npzfile['Y']
+    Y_z_star = npzfile['Y_z']
+    Y_u_star = npzfile['Y_u']
 
     X_test = npzfile['X_test']
-    Y_test = npzfile['Y_test']
+    Y_z_test = npzfile['Y_z_test']
+    Y_u_test = npzfile['Y_u_test']
 
     input_dim = X_star.shape[1]
-    output_dim = Y_star.shape[1]
+    output_dim = Y_z_star.shape[1]
 
-    return lb, ub, input_dim, output_dim, X_test, Y_test, X_star, Y_star
+    return lb, ub, input_dim, output_dim, X_test, Y_z_test, Y_u_test, X_star, Y_z_star, Y_u_star
+
+def load_data_sc(path):
+    """
+    加载实测数据
+
+    :param path: path of the reference data, stored in 'pendulum.npz'
+    :return
+    """
+
+    npzfile = np.load(path)
+
+    # All data 这边star表示实际过程中的真实值
+    X_star = npzfile['X']
+    Y_z_star = npzfile['Y_z']
+    Y_u_star = npzfile['Y_u']
+
+    return X_star, Y_z_star, Y_u_star
 
 
 def generate_data_points(N_z, lb, ub):
     X_data = np.hstack((np.zeros((N_z, 1)), lb[1:] + (ub[1:] - lb[1:]) * lhs(len(ub) - 1, N_z)))
-    Y_data = X_data[:, 1:5]
+    # 生成（100，1）的全零数组作为X_data的第一列，（100，6）作为X_data的后六列
+    Y_data = X_data[:, 1:5] # 提取其中四列(状态变量)
     return X_data, Y_data
 
 
@@ -55,6 +75,7 @@ def generate_collocation_points(N_phys, lb, ub):
 
 
 def load_ref_trajectory(path):
+    '''
     X_12_ref = loadmat(os.path.join(path, 'y_soll.mat'))['y_soll'].T # 读取并转置 (1220, 2)，每列代表一个变量
     X_34_ref = loadmat(os.path.join(path, 'Dy_soll.mat'))['Dy_soll'].T
     X_ref = np.hstack((X_12_ref, X_34_ref)) # 水平堆叠 (1220,4)
@@ -67,5 +88,7 @@ def load_ref_trajectory(path):
     # 稀疏化处理，从原始数据中每隔10个数据点取一个点
     X_ref = X_ref[::freq]
     T_ref = T_ref[::freq] # (122,1)
-
+    '''
+    X_ref = []
+    T_ref = []
     return X_ref, T_ref

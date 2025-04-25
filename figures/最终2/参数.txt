@@ -1,0 +1,126 @@
+训练集加上 真实过程（240秒间隔）
+3*40 
+z  tanh 有layernorm
+u tanh 有layernorm
+lbfgs lr =0.01
+
+INFO:root:TensorFlow version: 2.5.2
+INFO:root:Eager execution: True
+INFO:root:Epochs: 50000 （为了节省时间，u只迭代了5000次）
+INFO:root:N_data: 100
+INFO:root:N_phys: 10000
+加载数据
+pinn初始化
+2025-04-24 14:41:53.723124: W tensorflow/stream_executor/platform/default/dso_loader.cc:64] Could not load dynamic library 'nvcuda.dll'; dlerror: nvcuda.dll not found
+2025-04-24 14:41:53.723485: W tensorflow/stream_executor/cuda/cuda_driver.cc:326] failed call to cuInit: UNKNOWN ERROR (303)
+2025-04-24 14:41:53.731758: I tensorflow/stream_executor/cuda/cuda_diagnostics.cc:169] retrieving CUDA diagnostic information for host: cl888
+2025-04-24 14:41:53.732499: I tensorflow/stream_executor/cuda/cuda_diagnostics.cc:176] hostname: cl888
+2025-04-24 14:41:53.733302: I tensorflow/core/platform/cpu_feature_guard.cc:142] This TensorFlow binary is optimized with oneAPI Deep Neural Network Library (oneDNN) to use the following CPU instructions in performance-critical operations:  AVX AVX2
+To enable them in other operations, rebuild TensorFlow with the appropriate compiler flags.
+(9353, 9)
+(9353, 5)
+(990, 9)
+lb [ 0.000e+00 -6.850e+01 -1.686e+02 -2.681e+02 -3.192e+02 -3.231e+02
+  1.300e+00 -1.000e-01  1.295e+00]
+ub [ 6.000e+02 -6.400e+00 -1.094e+02 -2.057e+02 -2.915e+02 -3.082e+02
+  4.600e+00  5.000e-02  4.000e+00]
+INFO:root:	1/1 Staurt training of the PINN
+INFO:root:Start L-BFGS optimization
+2025-04-24 14:41:54.435951: I tensorflow/compiler/mlir/mlir_graph_optimization_pass.cc:176] None of the MLIR Optimization Passes are enabled (registered 2)
+INFO:root:	Epoch: 00001/50000,	Loss: 5.5756e+04,	Accuracy (MSE): 5.5903e+04,	 Elapsed time: 0:00:00 (+00:01.42)
+INFO:root:	Epoch: 01000/50000,	Loss: 8.3439e+01,	Accuracy (MSE): 8.8976e+01,	 Elapsed time: 0:01:06 (+01:05.02)
+INFO:root:	Epoch: 02000/50000,	Loss: 3.5896e+00,	Accuracy (MSE): 3.2723e+00,	 Elapsed time: 0:02:14 (+01:08.28)
+INFO:root:	Epoch: 03000/50000,	Loss: 4.8752e+00,	Accuracy (MSE): 4.2722e+00,	 Elapsed time: 0:04:40 (+02:26.35)
+INFO:root:	Epoch: 04000/50000,	Loss: 2.1312e+00,	Accuracy (MSE): 1.8185e+00,	 Elapsed time: 0:06:37 (+01:56.48)
+INFO:root:	Epoch: 05000/50000,	Loss: 7.2059e-01,	Accuracy (MSE): 4.8256e-01,	 Elapsed time: 0:08:10 (+01:32.69)
+INFO:root:	Epoch: 06000/50000,	Loss: 2.8912e-01,	Accuracy (MSE): 1.2655e-01,	 Elapsed time: 0:09:19 (+01:09.36)
+INFO:root:	Epoch: 07000/50000,	Loss: 1.6461e-01,	Accuracy (MSE): 8.8635e-02,	 Elapsed time: 0:10:35 (+01:16.41)
+INFO:root:	Epoch: 08000/50000,	Loss: 1.2014e-01,	Accuracy (MSE): 6.4683e-02,	 Elapsed time: 0:11:51 (+01:15.20)
+INFO:root:	Epoch: 09000/50000,	Loss: 1.0293e-01,	Accuracy (MSE): 5.5233e-02,	 Elapsed time: 0:13:04 (+01:13.09)
+INFO:root:	Epoch: 10000/50000,	Loss: 9.1149e-02,	Accuracy (MSE): 4.7235e-02,	 Elapsed time: 0:14:16 (+01:12.73)
+INFO:root:	Epoch: 11000/50000,	Loss: 8.1337e-02,	Accuracy (MSE): 4.4194e-02,	 Elapsed time: 0:15:28 (+01:11.61)
+INFO:root:	Epoch: 12000/50000,	Loss: 7.0951e-02,	Accuracy (MSE): 4.1645e-02,	 Elapsed time: 0:16:42 (+01:13.75)
+INFO:root:	Epoch: 13000/50000,	Loss: 5.9776e-02,	Accuracy (MSE): 4.1672e-02,	 Elapsed time: 0:17:50 (+01:08.38)
+INFO:root:	Epoch: 14000/50000,	Loss: 5.3427e-02,	Accuracy (MSE): 4.0502e-02,	 Elapsed time: 0:19:03 (+01:12.61)
+INFO:root:	Epoch: 15000/50000,	Loss: 4.8870e-02,	Accuracy (MSE): 3.6093e-02,	 Elapsed time: 0:20:17 (+01:13.76)
+INFO:root:	Epoch: 16000/50000,	Loss: 4.5522e-02,	Accuracy (MSE): 3.4254e-02,	 Elapsed time: 0:21:45 (+01:28.83)
+INFO:root:	Epoch: 17000/50000,	Loss: 4.2744e-02,	Accuracy (MSE): 3.1959e-02,	 Elapsed time: 0:22:56 (+01:10.18)
+INFO:root:	Epoch: 18000/50000,	Loss: 3.9353e-02,	Accuracy (MSE): 2.8865e-02,	 Elapsed time: 0:24:07 (+01:11.62)
+INFO:root:	Epoch: 19000/50000,	Loss: 3.7026e-02,	Accuracy (MSE): 2.7188e-02,	 Elapsed time: 0:25:27 (+01:19.85)
+INFO:root:	Epoch: 20000/50000,	Loss: 3.4805e-02,	Accuracy (MSE): 2.5572e-02,	 Elapsed time: 0:26:42 (+01:14.47)
+INFO:root:	Epoch: 21000/50000,	Loss: 3.3395e-02,	Accuracy (MSE): 2.4623e-02,	 Elapsed time: 0:27:50 (+01:07.99)
+INFO:root:	Epoch: 22000/50000,	Loss: 3.1656e-02,	Accuracy (MSE): 2.3657e-02,	 Elapsed time: 0:28:59 (+01:09.91)
+INFO:root:	Epoch: 23000/50000,	Loss: 3.0808e-02,	Accuracy (MSE): 2.3349e-02,	 Elapsed time: 0:30:19 (+01:19.69)
+INFO:root:	Epoch: 24000/50000,	Loss: 3.0064e-02,	Accuracy (MSE): 2.2876e-02,	 Elapsed time: 0:31:28 (+01:08.39)
+INFO:root:	Epoch: 25000/50000,	Loss: 2.9120e-02,	Accuracy (MSE): 2.2343e-02,	 Elapsed time: 0:32:39 (+01:10.97)
+INFO:root:	Epoch: 26000/50000,	Loss: 2.8234e-02,	Accuracy (MSE): 2.1977e-02,	 Elapsed time: 0:33:48 (+01:09.90)
+INFO:root:	Epoch: 27000/50000,	Loss: 2.7557e-02,	Accuracy (MSE): 2.1652e-02,	 Elapsed time: 0:35:01 (+01:12.96)
+INFO:root:	Epoch: 28000/50000,	Loss: 2.6596e-02,	Accuracy (MSE): 2.1014e-02,	 Elapsed time: 0:36:14 (+01:12.60)
+INFO:root:	Epoch: 29000/50000,	Loss: 2.5683e-02,	Accuracy (MSE): 2.0639e-02,	 Elapsed time: 0:37:28 (+01:13.93)
+INFO:root:	Epoch: 30000/50000,	Loss: 2.5079e-02,	Accuracy (MSE): 2.0273e-02,	 Elapsed time: 0:38:37 (+01:09.19)
+INFO:root:	Epoch: 31000/50000,	Loss: 2.4361e-02,	Accuracy (MSE): 1.9726e-02,	 Elapsed time: 0:40:11 (+01:33.88)
+INFO:root:	Epoch: 32000/50000,	Loss: 2.3709e-02,	Accuracy (MSE): 1.9069e-02,	 Elapsed time: 0:42:07 (+01:56.50)
+INFO:root:	Epoch: 33000/50000,	Loss: 2.3027e-02,	Accuracy (MSE): 1.8496e-02,	 Elapsed time: 0:44:05 (+01:57.16)
+INFO:root:	Epoch: 34000/50000,	Loss: 2.2200e-02,	Accuracy (MSE): 1.7830e-02,	 Elapsed time: 0:45:21 (+01:16.79)
+INFO:root:	Epoch: 35000/50000,	Loss: 2.1605e-02,	Accuracy (MSE): 1.7235e-02,	 Elapsed time: 0:46:40 (+01:17.99)
+INFO:root:	Epoch: 36000/50000,	Loss: 2.1076e-02,	Accuracy (MSE): 1.6767e-02,	 Elapsed time: 0:48:03 (+01:23.23)
+INFO:root:	Epoch: 37000/50000,	Loss: 2.0588e-02,	Accuracy (MSE): 1.6578e-02,	 Elapsed time: 0:49:14 (+01:11.22)
+INFO:root:	Epoch: 38000/50000,	Loss: 2.0227e-02,	Accuracy (MSE): 1.6229e-02,	 Elapsed time: 0:50:23 (+01:09.44)
+INFO:root:	Epoch: 39000/50000,	Loss: 1.9901e-02,	Accuracy (MSE): 1.6018e-02,	 Elapsed time: 0:51:38 (+01:14.82)
+INFO:root:	Epoch: 40000/50000,	Loss: 1.9421e-02,	Accuracy (MSE): 1.5740e-02,	 Elapsed time: 0:54:15 (+02:37.15)
+INFO:root:	Epoch: 41000/50000,	Loss: 1.8972e-02,	Accuracy (MSE): 1.5352e-02,	 Elapsed time: 0:56:50 (+02:34.85)
+INFO:root:	Epoch: 42000/50000,	Loss: 1.8563e-02,	Accuracy (MSE): 1.5043e-02,	 Elapsed time: 0:59:28 (+02:37.98)
+INFO:root:	Epoch: 43000/50000,	Loss: 1.8140e-02,	Accuracy (MSE): 1.4643e-02,	 Elapsed time: 1:02:07 (+02:38.51)
+INFO:root:	Epoch: 44000/50000,	Loss: 1.7747e-02,	Accuracy (MSE): 1.4147e-02,	 Elapsed time: 1:05:04 (+02:57.09)
+INFO:root:	Epoch: 45000/50000,	Loss: 1.7318e-02,	Accuracy (MSE): 1.3920e-02,	 Elapsed time: 1:08:00 (+02:55.89)
+INFO:root:	Epoch: 46000/50000,	Loss: 1.6856e-02,	Accuracy (MSE): 1.3624e-02,	 Elapsed time: 1:10:52 (+02:52.75)
+INFO:root:	Epoch: 47000/50000,	Loss: 1.6548e-02,	Accuracy (MSE): 1.3395e-02,	 Elapsed time: 1:13:48 (+02:55.39)
+INFO:root:	Epoch: 48000/50000,	Loss: 1.6208e-02,	Accuracy (MSE): 1.2990e-02,	 Elapsed time: 1:16:38 (+02:50.52)
+INFO:root:	Epoch: 49000/50000,	Loss: 1.5944e-02,	Accuracy (MSE): 1.2745e-02,	 Elapsed time: 1:19:31 (+02:53.12)
+INFO:root:	Epoch: 50000/50000,	Loss: 1.5714e-02,	Accuracy (MSE): 1.2521e-02,	 Elapsed time: 1:22:24 (+02:52.12)
+INFO:root:	Epoch: 0001/5000,	Loss: 1.2845e+00,	Accuracy (MSE): 1.2313e+00,	 Elapsed time: 1:22:25 (+00:01.13)
+INFO:root:	Epoch: 1000/5000,	Loss: 1.2526e-05,	Accuracy (MSE): 1.0984e-05,	 Elapsed time: 1:24:33 (+02:08.72)
+INFO:root:	Epoch: 2000/5000,	Loss: 1.0437e-05,	Accuracy (MSE): 9.4051e-06,	 Elapsed time: 1:27:12 (+02:38.80)
+INFO:root:	Epoch: 3000/5000,	Loss: 1.0415e-05,	Accuracy (MSE): 9.3835e-06,	 Elapsed time: 1:30:01 (+02:48.35)
+INFO:root:	Epoch: 4000/5000,	Loss: 1.0399e-05,	Accuracy (MSE): 9.3659e-06,	 Elapsed time: 1:32:45 (+02:43.97)
+INFO:root:	Epoch: 5000/5000,	Loss: 1.0385e-05,	Accuracy (MSE): 9.3508e-06,	 Elapsed time: 1:35:26 (+02:41.50)
+评价
+[[ 2.400e+02 -1.870e+01 -1.187e+02 ...  4.000e+00 -1.750e-02  4.000e+00]
+ [ 2.400e+02 -2.010e+01 -1.187e+02 ...  3.930e+00 -1.750e-02  4.000e+00]
+ [ 2.400e+02 -2.110e+01 -1.191e+02 ...  3.860e+00 -1.750e-02  4.000e+00]
+ ...
+ [ 2.400e+02 -5.110e+01 -1.497e+02 ...  2.120e+00  5.000e-03  2.610e+00]
+ [ 2.400e+02 -5.080e+01 -1.502e+02 ...  2.140e+00  2.500e-03  2.550e+00]
+ [ 2.400e+02 -5.060e+01 -1.505e+02 ...  2.150e+00 -5.375e-01  2.530e+00]]
+[[ -20.04771617 -118.96176762 -218.4851155  -300.42941827 -320.23860945]
+ [ -21.03274338 -119.2139606  -218.21329536 -299.88746405 -319.64105389]
+ [ -22.01036202 -119.70316708 -218.32405822 -299.695321   -319.32110535]
+ ...
+ [ -51.01671799 -150.46380686 -246.02076438 -307.76676146 -315.08356804]
+ [ -50.75616059 -150.6352356  -247.05794632 -308.41835544 -315.44785139]
+ [-164.39640378 -193.92477547 -279.90763238 -292.67200395 -292.1170997 ]]
+(301, 5)
+(300,)
+(301, 9)
+(301, 5)
+WARNING:matplotlib.backends.backend_ps:The PostScript backend does not support transparency; partially transparent artists will be rendered opaque.
+WARNING:matplotlib.backends.backend_ps:The PostScript backend does not support transparency; partially transparent artists will be rendered opaque.
+WARNING:matplotlib.backends.backend_ps:The PostScript backend does not support transparency; partially transparent artists will be rendered opaque.
+WARNING:matplotlib.backends.backend_ps:The PostScript backend does not support transparency; partially transparent artists will be rendered opaque.
+INFO:root:$0km$, MAE: 1.41e-03, MaxE: 7.41e-03
+INFO:root:$1km$, MAE: 2.46e-03, MaxE: 1.35e-02
+INFO:root:$2km$, MAE: 2.23e-03, MaxE: 1.16e-02
+INFO:root:$3km$, MAE: 2.33e-03, MaxE: 9.58e-03
+INFO:root:$4km$, MAE: 2.16e-03, MaxE: 1.09e-02
+WARNING:matplotlib.backends.backend_ps:The PostScript backend does not support transparency; partially transparent artists will be rendered opaque.
+WARNING:matplotlib.backends.backend_ps:The PostScript backend does not support transparency; partially transparent artists will be rendered opaque.
+WARNING:matplotlib.backends.backend_ps:The PostScript backend does not support transparency; partially transparent artists will be rendered opaque.
+WARNING:matplotlib.backends.backend_ps:The PostScript backend does not support transparency; partially transparent artists will be rendered opaque.
+INFO:root:$0km$, MAE: 5.73e-03, MaxE: 3.67e-02
+INFO:root:$1km$, MAE: 4.80e-03, MaxE: 2.01e-02
+INFO:root:$2km$, MAE: 4.39e-03, MaxE: 1.54e-02
+INFO:root:$3km$, MAE: 5.22e-03, MaxE: 2.32e-02
+INFO:root:$4km$, MAE: 3.96e-03, MaxE: 2.12e-02
+WARNING:matplotlib.backends.backend_ps:The PostScript backend does not support transparency; partially transparent artists will be rendered opaque.
+WARNING:matplotlib.backends.backend_ps:The PostScript backend does not support transparency; partially transparent artists will be rendered opaque.
+Do you want to save (overwrite) the models weights? [y/N]: >? y

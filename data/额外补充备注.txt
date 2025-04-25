@@ -1,0 +1,9 @@
+额外补充1：
+Q_base_values = np.arange(1.3, 3.5 + 1e-9, 0.2)
+k_Q_values = np.arange(-0.01, 0.01 + 1e-9, 0.01)
+h_base_range = np.array([-3.26,-3.25])
+k_h_range = np.arange(-0.003, 0.003+ 1e-9,0.003)  
+
+
+梯形断面_原始
+补充1：对上游Q每分钟变化量大的进行了补充

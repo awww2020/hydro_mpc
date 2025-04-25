@@ -9,10 +9,24 @@ print(data.files)
 # 访问 NPZ 文件中特定数组的数据，例如：
 array_example = data['X']
 print(array_example)
+print('-------------')
+array_example = data['Y']
+print(array_example)
+print('-------------')
+array_example = data['U']
+print(array_example)
+print('-------------')
+array_example = data['T']
+print(array_example)
+print('-------------')
+array_example = data['X0']
+print(array_example)
 
 # Lower and upper bound
 lb = data['lb']
 ub = data['ub']
+print(lb)
+print(ub)
 
 # All data
 X_star = data['X']
@@ -28,9 +42,9 @@ Y_test = data['Y_test']
 
 print('lb.shape',lb.shape)
 print('ub.shape',ub.shape)
-print('U.shape',lb.shape)
-print('T.shape',lb.shape)
-print('X0.shape',lb.shape)
+print('U.shape', U.shape)
+print('T.shape',T.shape)
+print('X0.shape',X0.shape)
 print('X.shape',X_star.shape)
 print('Y.shape',Y_star.shape)
 print('X_test.shape',X_test.shape)
