@@ -1,5 +1,0 @@
-N_layer = 3
-N_neurons = 40
-learning_rate=0.1
-迭代5000次
-加了dropout
