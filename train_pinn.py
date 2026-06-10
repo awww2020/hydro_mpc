@@ -43,6 +43,7 @@ class Hydro_NN(PINN):
         self.x0 = self.tensor(X_f[:, 1:6])
         self.u = self.tensor(X_f[:, 6:9])
 
+
 if __name__ == "__main__":
     # LOAD_WEIGHTS = True
     LOAD_WEIGHTS = False
@@ -72,7 +73,6 @@ if __name__ == "__main__":
     weights_path_z = os.path.join('E:/program/hydro_MPC/weights/easy_checkpoint_model_z/')
     weights_path_u = os.path.join('E:/program/hydro_MPC/weights/easy_checkpoint_model_u/')
 
-    print('加载数据')
     lb, ub, input_dim, output_dim, X_test, Y_z_test,Y_u_test, X_star, Y_z_star, Y_u_star = load_data(data_path)
     X_sc, Y_z_sc, Y_u_sc = load_data_sc(data_sc_path)
 
@@ -80,16 +80,11 @@ if __name__ == "__main__":
     Y_z_star = Y_z_star/100
     Y_z_sc = Y_z_sc/100
     print('X_star',X_star.shape)
-    '''
-    print(Y_z_test)
-    print(Y_z_star)
-    print(Y_z_sc)
-    '''
+
     N_layer = 3
     N_neurons = 40
     layers = [input_dim, *N_layer * [N_neurons], output_dim]
 
-    # PINN initialization
     print('pinn初始化')
     pinn = Hydro_NN(layers, lb, ub)
     pinn.strategy = os.environ.get('PINN_STRATEGY', pinn.strategy).lower()
@@ -110,24 +105,20 @@ if __name__ == "__main__":
             # Generate training data via LHS
             print('lb', lb)
             print('ub', ub)
-            # X_data, Y_data = generate_data_points(N_data, lb, ub)  # 100
             logging.info(f'\t{i + 1}/{N_train} Start training of the PINN')
             pinn.set_collocation_points(X_star)
             start_time = time.time()
             pinn.fit(X_star, Y_z_star, Y_u_star, epochs, X_test, Y_z_test, Y_u_test, optimizer='adam', learning_rate=0.01,
                      val_freq=1000, log_freq=1000)
 
-    print('评价')
-    # PINN Evaluation
+
     print(X_sc)
-    # Y_z_pred, Y_u_pred, F_pred = pinn.predict(X_sc)
     Y_z_pred, Y_u_pred = pinn.predict(X_sc)
     print(Y_z_pred)
     print(Y_z_pred.shape)
 
-    # t_step = X_test[1, 0] - X_test[0, 0]
+
     tau = 240
-    # T = np.arange(t_step, 12 * tau + t_step, t_step)
     T = np.arange(0, 300 * tau , tau)
     print(T.shape)
     print(X_sc.shape)
@@ -136,7 +127,6 @@ if __name__ == "__main__":
     output_path = "results_prediction.txt"
     with open(output_path, "w") as f:
         f.write("X_sc\tY_z_pred\tY_z_sc\n")
-
         for x, y_pred, y_true in zip(X_sc, Y_z_pred/100, Y_z_sc/100):
             x_str = ",".join(map(str, x.tolist())) if hasattr(x, "tolist") else str(x)
             yp_str = ",".join(map(str, y_pred.tolist())) if hasattr(y_pred, "tolist") else str(y_pred)

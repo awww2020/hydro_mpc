@@ -18,8 +18,7 @@ class MPC:
     """
 
     def __init__(self, plant, model, model_u, u_ub, u_lb, t_sample=0.1, H=10,
-                 Q=torch.eye(1, dtype=torch.float64), R=torch.eye(1, dtype=torch.float64),
-                 q_0=None, z_0=None, u_0=None):
+                 Q=torch.eye(1, dtype=torch.float64), R=torch.eye(1, dtype=torch.float64)):
         """
         Initializes the MPC with required models, constraints, and parameters.
 
@@ -31,9 +30,6 @@ class MPC:
         :param H: Prediction horizon (number of steps to look ahead).
         :param Q: State weighting matrix in the cost function.
         :param R: Control input weighting matrix in the cost function.
-        :param q_0: Initial flow values.
-        :param z_0: Initial water level values.
-        :param u_0: Initial control values.
         """
         self.plant = plant
         # 这边默认不加就是z,model_v是为了区别跟控制变量u
@@ -68,23 +64,24 @@ class MPC:
 
         self.solving_times = {}
         self.compute_time = {}
-        self.q_0 = np.asarray(q_0 if q_0 is not None else [
+        #todo 这个后续可以传入
+        self.q_0 = np.array([
             4.00, 4.00, 4.00, 4.00, 4.00,
             4.00, 4.00, 4.00, 4.00, 4.00,
             4.00, 4.00, 4.00, 4.00, 4.00,
             4.00, 4.00, 4.00, 4.00, 4.00,
             4.00
-        ], dtype=np.float64)
+        ])
 
         # z_0: 20 个值
-        self.z_0 = np.asarray(z_0 if z_0 is not None else [
+        self.z_0 = np.array([
             -0.187073, -0.387217, -0.587177, -0.787133, -0.987089,
             -1.187056, -1.387032, -1.587137, -1.786896, -1.986127,
             -2.183517, -2.378099, -2.565130, -2.738064, -2.885815,
             -2.999806, -3.079509, -3.131713, -3.165020, -3.186296
-        ], dtype=np.float64)
+        ])
 
-        self.u_0 = np.asarray(u_0 if u_0 is not None else np.zeros([5*1]), dtype=np.float64)
+        self.u_0 = np.zeros([5*1])
 
         self.errors_pct = []  # 用来存放每个时刻的水位百分比误差
         self.u_prev = None  # 记录上一步施加的闸门流量
@@ -292,45 +289,28 @@ class MPC:
     def sim(self, x0,  X_ref, T_ref, U_dis=None):
         """
         Simulates the system response over a specified time using the MPC control.
-        模拟整个系统在给定的时间范围内的响应，使用MPC控制来调整系统状态，以便跟踪给定的参考轨迹。
-        :param x0: Initial state.初始状态
+        :param x0: Initial state.
         :param X_ref: Reference trajectory.
         :param T_ref: Time instances corresponding to the reference trajectory.
         :return: Simulated state and control input trajectories.
         """
-        N = len(T_ref) # 预测时步
-        # 初始化
-        X_mpc = np.zeros((N, len(x0)))  # 实际状态序列 创建一个二维的 NumPy数组，其形状为 (N, len(x0))。这意味着数组有N行和 len(x0) 列
-        X_pred = np.zeros((N, len(x0)))  # 预测状态序列
-        U_mpc = np.zeros((N, self.u.shape[1]))  #u.shape 返回元组：各个维度的大小 这边是列数
+        N = len(T_ref)
+        X_mpc = np.zeros((N, len(x0)))
+        X_pred = np.zeros((N, len(x0)))
+        U_mpc = np.zeros((N, self.u.shape[1]))
         if U_dis is not None:
             self.U_dis = tf.constant(U_dis, dtype=tf.float64)
             self.u.assign(tf.concat([self.U_dis[:self.H], self.u[:, 2:]], axis=1))
 
-        X_mpc[0] = x0  # 第0行
+        X_mpc[0] = x0
         X_pred[0] = x0
         U_mpc[0] = self.u[0].numpy()
 
-        for i, t in enumerate(T_ref[:-self.H]): # 从下标为0的取到倒数最后一个
+        for i, t in enumerate(T_ref[:-self.H]):
             start_time = time.time()
-            # print(X_ref[i:i + self.H + 1].shape)
             print('i',i,' t',t)
-            '''
-            # warm-start：将当前 self.u 的[:, 2:] 平移一位,仅动第三列
-            shifted_u_opt = tf.concat([
-                self.u[1:, 2:],  # u_1 到 u_{H-1}
-                tf.expand_dims(self.u[-1, 2:], axis=0)  # 最后一行复制填补
-            ], axis=0)
-            '''
-            # print('优化前的(前两列应该是变化的)', self.u[0])
             J, x_pred = self.solve_ocp(X_mpc[i], X_ref[i:i + self.H + 1],i)
-
-            # print('优化后的', self.u)
-            # 以当前的系统状态 X_mpc[i] (相当于这个时刻的初值)和接下来的状态参考 X_ref[i:i + self.H + 1] 为输入，解决最优控制问题。返回最优成本J和预测状态x_pred
-            # self.H 预测时步
-
-            u_k = self.u[0]  # 提取当前最优控制输入
-            # print('当前最优u_k', u_k, u_k.shape)
+            u_k = self.u[0]
             ocp_solving_time = time.time() - start_time
             self.solving_times[i] = ocp_solving_time
 
@@ -339,30 +319,22 @@ class MPC:
 
             compute_time = time.time() - start_time_0
             self.compute_time[i] = compute_time
-            # todo: 增加真实值的设置和读取功能，这里先用预测值代替
-            # print(X_mpc[i])
-            # x_true = self.sim_nn(X_mpc[i], u_k, self.t_sample)
-            # print(x_true)
-            # 更新预测和实际状态:下一个预测状态、下一个实际状态、记录使用的控制输入
+
             X_pred[i + 1] = x_pred[1]
             X_mpc[i + 1] = x_true
             U_mpc[i + 1] = u_k.numpy()
 
-            # 更新 self.u 的下一个时刻的前两个维度
-            # '''
+
             if i + 1 < N:
-                # 滑动窗口平移：把这一轮的 u[1:] 向前滚动
                 shifted_u = tf.concat([
-                    self.u[1:],  # u_1 到 u_{H-1}
-                    tf.expand_dims(self.u[-1], axis=0)  # 最后一行复制
+                    self.u[1:],
+                    tf.expand_dims(self.u[-1], axis=0)
                 ], axis=0)
-            # '''
+
             new_u_dis = tf.constant(self.U_dis[i + 1:i + 1 + self.H], dtype=tf.float64)
             new_u = tf.concat([new_u_dis, shifted_u[:, 2:]], axis=1)
             self.u.assign(new_u)
 
-            # print('i,t',i,t)
-            # 生成一个日志字符串，记录迭代信息，最优成本J，下一个时间点 t + self.t_sample 和控制输入值。
             log_str = f'\tIter: {str(i + 1).zfill(len(str(N - 1)))}/{N - 1},\tJ: {J.numpy():.2e},' \
                       f'\tt: {t.item() + self.t_sample:.2f} s,'
 
@@ -376,7 +348,6 @@ class MPC:
             self.u_prev = self.u_curr
             self.u_history.append(self.u_curr)
 
-            # 记录每个控制输入 u_k 和状态 x_true 的值，并附加解决 OCP 的时间。
             for i in range(len(u_k)):
                 log_str = log_str + f'\tu{i + 1}: {u_k.numpy()[i]:.2f},'
 
@@ -392,82 +363,63 @@ class MPC:
     def sim_open_loop(self, x0, u_array, t_sample, H):
         """
         Simulates the system's open-loop response over the prediction horizon using the predictive model.
-        使用预测模型模拟系统的开环响应，给定初始状态和控制序列，预测系统未来的状态。
         :param x0: Current state.
         :param u_array: Array of control inputs for each step in the horizon.
         :param t_sample: Sampling time.
         :param H: Prediction horizon.
         :return: Predicted states over the horizon.
         """
-        # t 表示预测的时间间隔，和其他值拼成一个后作为模型输入
 
-        # t = torch.tensor([[t_sample]], dtype=torch.float64) # 创建时间常量(1，1) 若为[t_sample]，则是一维向量(1,)
-        # x_i = x0.unsqueeze(0)
         t = tf.constant(t_sample, dtype=tf.float64, shape=(1, 1)) # 创建时间常量(1，1)
         x_i = tf.expand_dims(x0, 0)
-        # 初始化状态向量，将初始状态向量x0通过扩展维度转换为一个二维张量，新的维度被添加在索引0的位置，使其成为一个形状为 (1,n) 的张量（一行n列的矩阵）
-        # 这样做的目的是与控制输入（u_array[i:i + 1]）进行拼接时，维度对齐
-        X_pred = x_i # 初始预测状态
-        # u_array 为self.u 为一个self.H行，self.input_dim的二维向量
-        # u_array[i:i + 1]这样的切片方式可以选择一个范围内的行，这里是从i到i+1，但不包括 i+1。这种切片会保持原数组的维度。返回向量为（1，m）,m为控制变量维度
+        X_pred = x_i
 
-        # 每次迭代模拟系统的下一个状态，并将其添加到 X_pred 中
 
-        for i in range(H):  # H为预测的步数
+        for i in range(H):
 
-            x = tf.concat((t, x_i, u_array[i:i + 1]), 1)  # 沿列方向拼接向量 (1，1+n+m)  拼接在一起输入了
-            x_pred = self.model(x) # 输出形状为（1,n），表示下一时刻
-            X_pred = tf.concat((X_pred, x_pred), 0) # 沿行方向拼接向量，每次增加一行，终为 (H+1, n)，包含从初始状态到当前迭代步的所有预测状态
-            x_i = x_pred # 状态更新
-            # 假设，x0是一个包含三个状态变量的系统的状态向量，H为10的情况下，最终X_pred形状为[11,3]
+            x = tf.concat((t, x_i, u_array[i:i + 1]), 1)
+            x_pred = self.model(x)
+            X_pred = tf.concat((X_pred, x_pred), 0)
+            x_i = x_pred
+
         return X_pred
 
     @tf.function
     def sim_open_loop_v(self, x0, u_array, t_sample, H):
         """
         Simulates the system's open-loop response over the prediction horizon using the predictive model.
-        使用预测模型模拟系统的开环响应，给定初始状态和控制序列，预测系统未来的状态。
         :param x0: Current state.
         :param u_array: Array of control inputs for each step in the horizon.
         :param t_sample: Sampling time.
         :param H: Prediction horizon.
         :return: Predicted states over the horizon.
         """
-        # t 表示预测的时间间隔，和其他值拼成一个后作为模型输入
 
-        # t = torch.tensor([[t_sample]], dtype=torch.float64) # 创建时间常量(1，1) 若为[t_sample]，则是一维向量(1,)
-        # x_i = x0.unsqueeze(0)
-        t = tf.constant(t_sample, dtype=tf.float64, shape=(1, 1))  # 创建时间常量(1，1)
+        t = tf.constant(t_sample, dtype=tf.float64, shape=(1, 1))
         x_i = tf.expand_dims(x0, 0)
-        # 初始化状态向量，将初始状态向量x0通过扩展维度转换为一个二维张量，新的维度被添加在索引0的位置，使其成为一个形状为 (1,n) 的张量（一行n列的矩阵）
-        # 这样做的目的是与控制输入（u_array[i:i + 1]）进行拼接时，维度对齐
-        V_pred = x_i  # 初始预测状态
-        # u_array 为self.u 为一个self.H行，self.input_dim的二维向量
-        # u_array[i:i + 1]这样的切片方式可以选择一个范围内的行，这里是从i到i+1，但不包括 i+1。这种切片会保持原数组的维度。返回向量为（1，m）,m为控制变量维度
 
-        # 每次迭代模拟系统的下一个状态，并将其添加到 X_pred 中
+        V_pred = x_i
 
-        for i in range(H):  # H为预测的步数
-            x = tf.concat((t, x_i, u_array[i:i + 1]), 1)  # 沿列方向拼接向量 (1，1+n+m)  拼接在一起输入了
-            v_pred = self.model_v(x)  # 输出形状为（1,n），表示下一时刻
-            V_pred = tf.concat((V_pred, v_pred), 0)  # 沿行方向拼接向量，每次增加一行，终为 (H+1, n)，包含从初始状态到当前迭代步的所有预测状态
-            x_i = v_pred  # 状态更新
-            # 假设，x0是一个包含三个状态变量的系统的状态向量，H为10的情况下，最终X_pred形状为[11,3]
+        for i in range(H):
+            x = tf.concat((t, x_i, u_array[i:i + 1]), 1)
+            v_pred = self.model_v(x)
+            V_pred = tf.concat((V_pred, v_pred), 0)
+            x_i = v_pred
+
         return V_pred
 
     def sim_nn(self, x0, u_array, t_sample):
-        # 用神经网络计算的值作为真实值近似
-        t = tf.constant(t_sample, dtype=tf.float64, shape=(1, 1)) # 创建时间常量(1，1)
+
+        t = tf.constant(t_sample, dtype=tf.float64, shape=(1, 1))
         x_i = tf.expand_dims(x0, 0)
         u_array = tf.expand_dims(u_array, 0)
-        x = tf.concat((t, x_i, u_array), 1)  # 沿列方向拼接向量 (1，1+n+m)  拼接在一起输入了
-        x_pred = self.model(x) # 输出形状为（1,n），表示下一时刻
+        x = tf.concat((t, x_i, u_array), 1)
+        x_pred = self.model(x)
         return x_pred
 
     def sim_open_loop_plant(self, x0, u_array, t_sample, H):
         """
         Simulates the system's open-loop response over the prediction horizon using the physical plant.
-        使用具体物理意义的系统模型模拟整个预测区间内系统动态，使用实际的系统动态和给定的控制序列在预测范围内系统的实际响应。
         :param x0: Current state.
         :param u_array: Array of control inputs for each step in the horizon.
         :param t_sample: Sampling time.
@@ -487,42 +439,31 @@ class MPC:
     def sim_plant_system(self, x0, u, tau):
         """
         Simulates the physical plant for a given control input over a single time step.
-        使用具体物理意义的系统模拟单个时间步内的系统动态，使用实际的系统动态和控制输入在给定的时间步长内模拟系统的行为
         :param x0: Current state.
         :param u: Control input to be applied.
         :param tau: Time step duration.
         :return: New state after applying the control input.这一时间步结束时的系统状态
         """
 
-        ras = win32.Dispatch("RAS641.HECRASController")  # HEC-RAS 6.41版本COM接口
-        '''
-        
-        思路：
-        修改流速文件，1. 打开流速文件 2.修改初值 3. 修改边界条件 4. prj文件里面增加 如果没有的话
-        修改.p 文件 1. 指定流速文件 2.prj文件里面增加 如果没有的话
-        修改.prj文件，指定.p 文件  这边u和p 可以不变，是循环调用的
-        '''
+        ras = win32.Dispatch("RAS641.HECRASController")
         # 这边 tau = 600，
         x0 = x0/100
         print('X0',x0)
         time_steps = int(tau/60 +1)
-        # 初始化q_upstream和wl_downstream的数组
+
         q_upstream = np.zeros(time_steps)
         q_downstream = np.zeros(time_steps)
-        # print('计算初值self.q_0', self.q_0)
-        # print('计算初值self.z_0',self.z_0)
-        # 使用循环生成q_upstream和wl_downstream的值
+
         for t in range(time_steps):
             q_upstream[t] = u[0:1] + u[1:2] * t
             q_downstream[t] = u[2:3]
-        # print('q_upstream',q_upstream)
-        # print('q_downstream',q_downstream)
+
         PROJECT_PATH = r"E:\program\hec_ras_project\mpc_test_1\mpc_test.prj"
         ras.Project_Open(PROJECT_PATH)
-        # ras.ShowRAS()
+
 
         file_path = r'E:\program\hec_ras_project\mpc_test_1\mpc_test.prj'
-        # 这边可以随便选，因为已经有了
+
         sim_id = 3
         u_filename = modify_unsteady_file(sim_id, q_upstream, q_downstream, self.q_0, self.z_0, x0)
         ras.Project_Save
@@ -530,19 +471,15 @@ class MPC:
         new_p_filename, plan_title = create_plan_file(sim_id, 'E:\program\hec_ras_project\mpc_test_1\mpc_test.p03')
         ras.Project_Save
 
-        # 保障.prj有Current Plan
         with open(file_path, 'r', encoding='utf-8') as f:
-            lines = f.readlines()  # 按行读取
+            lines = f.readlines()
 
-        # **检查第二行是否是 `Current Plan=` 开头**
         if lines[1].strip().startswith("Current Plan="):
-            # print("替换 `Current Plan=`")
-            lines[1] = f"Current Plan=p{sim_id:02d}\n"  # **替换第二行**
-        else:
-            # print("增加 `Current Plan=` 到第二行")
-            lines.insert(1, f"Current Plan=p{sim_id:02d}\n")  # **在第二行插入**
 
-        # **保存文件**
+            lines[1] = f"Current Plan=p{sim_id:02d}\n"
+        else:
+            lines.insert(1, f"Current Plan=p{sim_id:02d}\n")
+
         with open(file_path, 'w', encoding='utf-8') as f:
             f.writelines(lines)
 
@@ -550,7 +487,6 @@ class MPC:
         ras.Project_Open(PROJECT_PATH)
 
         current_plan = ras.CurrentPlanFile()
-        # print("current_plan",current_plan)
 
         ras.Compute_HideComputationWindow()
         success = ras.Compute_CurrentPlan(None, None, True)
@@ -564,16 +500,15 @@ class MPC:
 
         z_true = np.zeros((len(x0), ))
         v_true = np.zeros((len(x0),))
-        # 用 enumerate 一一对应索引，不再用双重循环
+
         for idx, j in enumerate(range(1, 22, 5)):
-            # 取出第 idx 行 这边第5列代表时间
             z_true[idx] = ras.Output_NodeOutput(1, 1, j, 0, 6, 2)[0]
             v_true[idx] = ras.Output_NodeOutput(1, 1, j, 0, 6, 23)[0]
 
-        for j in range(1, 21):  # j = 1,2,...,20
+        for j in range(1, 21):
             self.z_0[j-1] = ras.Output_NodeOutput(1, 1, j, 0, 6, 2)[0]
 
-        for j in range(1, 22):  # j = 1,2,...,21
+        for j in range(1, 22):
             self.q_0[j-1] = ras.Output_NodeOutput(1, 1, j, 0, 6, 9)[0]
 
         ras.QuitRAS()

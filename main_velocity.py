@@ -37,9 +37,11 @@ if __name__ == "__main__":
     N_n = 40
     layers = [input_dim, *N_l * [N_n], output_dim]
 
+
     logging.info('MPC parameters:')
     H = 30
     logging.info(f'\tH:\t{H}')
+    # 控制目标的上下限
     u_ub = np.array([4,  0.01, 4])
     u_lb = np.array([0, -0.01, 0])
 
@@ -57,24 +59,24 @@ if __name__ == "__main__":
     tau = 240
     logging.info(f'\ttau:\t{tau}') # 240 s
 
-    # Initialization
     pinn = Hydro_NN(layers, lb, ub)
-    # Load pretrained weights
     pinn.load_weights(weights_path_z, weights_path_u)
 
-    print('初始化')
     controller = MPC(f, pinn.model_z,pinn.model_u, u_ub=u_ub, u_lb=u_lb,
                      t_sample=tau, H=H,
                      Q=tf.linalg.tensor_diag(tf.constant([1], dtype=tf.float64)),
                      R=1e-3 * tf.eye(1, dtype=tf.float64))
+
+
+
     # ============== Testing self loop prediction =============
+
 
     # ============== Testing closed loop =============
     print('X_ref', X_ref.shape)
 
     print('T_ref', T_ref.shape)
     U_dis = X_sc[:len(T_ref),6:8]
-    # print('U_dis', U_dis)
     print('U_dis.shape', U_dis.shape)
 
     X_mpc, U_mpc, X_pred = controller.sim(x0, X_ref, T_ref, U_dis)
@@ -82,7 +84,6 @@ if __name__ == "__main__":
     output_path = "results_222.txt"
     with open(output_path, "w") as f:
         f.write("t\tX_sc\tU\tY_z_pred\tY_u_sc\n")
-
         for t, z_0, u, z, v in zip(controller.t_list, controller.z_0_list, controller.u_list, controller.z_list,controller.v_list):
             t_str = ",".join(map(str, t.tolist())) if hasattr(t, "tolist") else str(t)
             z_0_str = ",".join(map(str, z_0.tolist())) if hasattr(z_0, "tolist") else str(z_0)
@@ -100,3 +101,4 @@ if __name__ == "__main__":
     plot_input_sequence(T_ref[:-H], U_mpc[:-H],filename='控制输入优化结果')
     print(X_mpc.shape)
     plot_aim_states(T_ref[:-H], X_ref[:-H,0:1]/100, Z_mpc=X_mpc[:-H]/100,filename='目标状态水位')
+    # plot_absolute_error(T_ref, X_ref, Z_mpc=X_mpc)

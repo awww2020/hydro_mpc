@@ -43,8 +43,8 @@ if __name__ == "__main__":
     u_ub = np.array([4,  0.01, 4])
     u_lb = np.array([0, -0.01, 0])
 
-    # X_ref, T_ref = load_ref_trajectory('./data')
-    # shape = (289, 1)
+    # ==============定义MPC目标参考值=============
+
     shape = (300, 1)
     fill_value = -320.
     X_ref = np.full(shape, fill_value)
@@ -59,26 +59,30 @@ if __name__ == "__main__":
     T_ref = array_1d.reshape(300, 1)
 
     tau = 240
-    logging.info(f'\ttau:\t{tau}') # 240 s
+    logging.info(f'\ttau:\t{tau}')
 
     # Initialization
     pinn = Hydro_NN(layers, lb, ub)
     # Load pretrained weights
     pinn.load_weights(weights_path_z, weights_path_u)
 
+    # ==============初始化MPC控制器=============
     print('初始化')
     controller = MPC(f, pinn.model_z, u_ub=u_ub, u_lb=u_lb,
                      t_sample=tau, H=H,
                      Q=tf.linalg.tensor_diag(tf.constant([1], dtype=tf.float64)),
                      R=1e-3 * tf.eye(1, dtype=tf.float64))
+
     # ============== Testing self loop prediction =============
+
     # ============== Testing closed loop =============
+
     print('X_ref', X_ref.shape)
     print('X_ref', X_ref)
 
     print('T_ref', T_ref.shape)
     U_dis = X_sc[:len(T_ref),6:8]
-    # print('U_dis', U_dis)
+
     print('U_dis.shape', U_dis.shape)
 
     X_mpc, U_mpc, X_pred, X_mpc_p = controller.sim(x0, X_ref, T_ref, U_dis)
@@ -95,13 +99,14 @@ if __name__ == "__main__":
             v_str = ",".join(map(str, v.tolist())) if hasattr(v, "tolist") else str(v)
             f.write(f"{t_str}\t{z_0_str}\t{u_str}\t{z_str}\t{v_str}\n")
 
+
     MAE = max(controller.errors_pct)
     IAQ = controller.iaq_accum - abs(controller.u_history[0]-controller.u_history[-1])
     print(f"=== 控制性能指标 ===")
     print(f"MAE (最大绝对水位误差百分比): {MAE:.2f}%")
     print(f"IAQ (综合绝对排量变化): {IAQ:.2f} m³/s")
 
+
     plot_input_sequence(T_ref[:-H], U_mpc[:-H],filename='控制输入优化结果')
     print(X_mpc.shape)
     plot_aim_states(T_ref[:-H], X_ref[:-H]/100, Z_mpc=X_mpc_p[:-H]/100,filename='目标状态水位')
-    # plot_absolute_error(T_ref, X_ref, Z_mpc=X_mpc)

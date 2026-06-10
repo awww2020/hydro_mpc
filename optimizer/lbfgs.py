@@ -87,6 +87,7 @@ def function_factory(model, loss_fcn, x, y, callback_fcn, epochs, x_test=None, y
         # store loss value so we can retrieve later
         tf.py_function(f.history.append, inp=[loss_value], Tout=[])
 
+        # 检查是否早停(以下为增加的)
         if hasattr(callback_fcn, '__self__') and hasattr(callback_fcn.__self__, 'early_stop_triggered_z'):
             if callback_fcn.__self__.early_stop_triggered_z:
                 raise StopIteration("Early stopping triggered by epoch_callback_z")

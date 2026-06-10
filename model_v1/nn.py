@@ -61,29 +61,13 @@ class NN(object, metaclass=abc.ABCMeta):
         self.model_z.add(Lambda(lambda X: 2.0 * (X - lb) / (ub - lb) - 1.0))
         self.model_u.add(Lambda(lambda X: 2.0 * (X - lb) / (ub - lb) - 1.0))
 
-        # Hidden Layer
-        '''
-        for layer_width in layers[1:-1]:
-            self.model_z.add(Dense(layer_width, activation=tf.nn.tanh,
-                                 kernel_initializer='glorot_normal'))
-            # self.model_z.add(Dropout(rate=0.3))
 
         for layer_width in layers[1:-1]:
-            self.model_u.add(Dense(layer_width, activation=tf.nn.tanh,
-                                   kernel_initializer='glorot_normal'))
-        '''
-        for layer_width in layers[1:-1]:
             self.model_z.add(Dense(layer_width, activation=None, kernel_initializer='glorot_normal'))
-            # 添加 LayerNorm
-            # self.model_z.add(LayerNormalization())
-            # 再加激活
             self.model_z.add(Activation('tanh'))
 
         for layer_width in layers[1:-1]:
             self.model_u.add(Dense(layer_width, activation=None, kernel_initializer='glorot_normal'))
-            # 添加 LayerNorm
-            # self.model_u.add(LayerNormalization())
-            # 再加激活
             self.model_u.add(Activation('tanh'))
 
         # Output Layer :
@@ -91,7 +75,6 @@ class NN(object, metaclass=abc.ABCMeta):
         self.model_u.add(Dense(self.output_dim))
 
         self.optimizer = None
-        # 均方误差 平方相加在取平均
         self.loss_object = tf.keras.losses.MeanSquaredError()
 
         self.start_time = None
@@ -312,15 +295,7 @@ class NN(object, metaclass=abc.ABCMeta):
         except StopIteration as e:
             print(e)
 
-        '''
-        val_freq 作用: 指定验证数据评估的频率。
-        示例: 每 5 个 epoch 评估一次测试数据，val_freq=5
-        log_freq  作用: 指定日志记录的频率。
-        示例: 每 10 个 epoch 记录一次日志，log_freq=10
-        verbose 作用: 控制训练过程中的输出信息详细程度。
-        取值: 0 (不输出), 1 (进度条), 2 (每个 epoch 输出一行)
-        示例: verbose=1
-        '''
+
 
     def plot_train_results(self, basename=None):
         """
@@ -416,7 +391,6 @@ class NN(object, metaclass=abc.ABCMeta):
         :param str path: path where the weights are saved
         """
         Path(path).mkdir(parents=True, exist_ok=True)
-        # 这边的save_weights是model自带的函数
         self.model_z.save_weights(path)
 
     def save_weights_u(self, path):
@@ -542,7 +516,6 @@ class NN(object, metaclass=abc.ABCMeta):
         elapsed_time = self.get_elapsed_time()
         self.train_time_results[epoch] = elapsed_time
 
-        # -------- Early stopping 判断逻辑 --------
         patience = 20
         min_delta = 1e-6
 
@@ -559,7 +532,6 @@ class NN(object, metaclass=abc.ABCMeta):
                 if mean_squared_error_z <= min(self.train_accuracy_results_z.values()):
                     self.save_weights_z(os.path.join(self.checkpoints_dir, 'easy_checkpoint_model_z'))
 
-                # ---------- Early stopping 检查逻辑 ----------
                 if mean_squared_error_z < self.early_stop_best_loss_z - min_delta:
                     self.early_stop_best_loss_z = mean_squared_error_z
                     self.early_stop_wait_z = 0
@@ -595,7 +567,6 @@ class NN(object, metaclass=abc.ABCMeta):
         elapsed_time = self.get_elapsed_time()
         self.train_time_results[epoch] = elapsed_time
 
-        # -------- Early stopping 判断逻辑 --------
         patience = 20
         min_delta = 1e-6
 
